@@ -1,1 +1,6 @@
-quark_os.bin
+#
+# Ignore compilation result files
+#
+
+*.bin
+*.o
