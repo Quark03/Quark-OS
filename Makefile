@@ -35,7 +35,7 @@ bootloader: $(BOOTLOADER_SRC)
 kernel:
 	@echo $(TCOLOR_CYAN)Compiling kernel ...$(TCOLOR_RESET)
 	@gcc -arch x86_64 -ffreestanding -c $(KERNEL_SRC) -o kernel.o
-	@ld -arch x86_64 -o kernel-ld -e 0x1000 kernel.o
+	@ld -arch x86_64 -o kernel.bin -image_base 0x1000 -static kernel.o
 	@echo $(TCOLOR_GREEN)Kernel compiled successfully$(TCOLOR_RESET)
 
 clean:
