@@ -5,3 +5,9 @@
 *.bin
 *.o
 quark-os
+
+#
+# Ignore trash files
+#
+
+.DS_Store
