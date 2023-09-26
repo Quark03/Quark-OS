@@ -1,5 +1,4 @@
-# OS Name
-NAME=quark_os.bin
+NAME=quark-os
 
 # Terminal Colors
 TCOLOR_RESET="\033[0m"
@@ -11,36 +10,51 @@ TCOLOR_PURPLE="\033[35m"
 TCOLOR_CYAN="\033[36m"
 TCOLOR_WHITE="\033[37m"
 
-BOOTLOADER_SRC=bootloader/bootloader.asm
-KERNEL_SRC=kernel/kernel.c
+# Automatically expand to a list of existing files that
+# match the patterns
+C_SOURCES = $(wildcard kernel/*.c drivers/*.c)
+HEADERS = $(wildcard kernel/*.h drivers/*.h)
 
-all:	group
-	@echo $(TCOLOR_PURPLE)Starting os emulation ...$(TCOLOR_RESET)
+# Create a list of object files to build, simple by replacing
+# the ’.c ’ extension of filenames in C_SOURCES with ’.o’
+OBJ = $(C_SOURCES:.c=.o)
+
+all: $(NAME)
+
+# Run qemu to simulate booting of our code
+run: all
+	@echo $(TCOLOR_PURPLE)Starting OS emulation ...$(TCOLOR_RESET)
 	@qemu-system-x86_64 -drive format=raw,file=$(NAME)
 
-group: bootloader kernel
-	@echo $(TCOLOR_CYAN)Building OS image ...$(TCOLOR_RESET)
-	@cat bootloader.bin kernel.bin > $(NAME)
-	@echo $(TCOLOR_GREEN)OS Image built successfully$(TCOLOR_RESET)
-
-bootloader: $(BOOTLOADER_SRC)
-	@clear
-	@echo $(TCOLOR_CYAN)Assembling bootloader ...$(TCOLOR_RESET)
-	@nasm $(BOOTLOADER_SRC) -f bin -o bootloader.bin
-	@echo $(TCOLOR_GREEN)Bootloader assembled$(TCOLOR_RESET)
+# This is the actual disk image that the computer loads
+# which is the combination of our compiled bootsector and kernel
+$(NAME): boot/boot_sect.bin kernel.bin
+	@echo $(TCOLOR_PURPLE)Building OS disk image ...$(TCOLOR_RESET)
+	@cat $^ > $(NAME)
+	@echo $(TCOLOR_GREEN)OS image built successfully$(TCOLOR_RESET)
 
 
-# ld -o kernel.bin -Ttext 0x1000 kernel.o --oformat binary
-# @arch -x86_64 objcopy -O binary -j .text kernel-ld kernel.bin
-kernel:
-	@echo $(TCOLOR_CYAN)Compiling kernel ...$(TCOLOR_RESET)
-	@gcc -arch x86_64 -ffreestanding -c $(KERNEL_SRC) -o kernel.o
-	@ld -arch x86_64 -o kernel.bin -image_base 0x1000 -static kernel.o
-	@echo $(TCOLOR_GREEN)Kernel compiled successfully$(TCOLOR_RESET)
+# This builds the binary of our kernel from two object files:
+# - the kernel_entry, which jumps to main() in our kernel
+# - the compiled C kernel
+kernel.bin: kernel/kernel_entry.o $(OBJ)
+	@echo $(TCOLOR_PURPLE)Linking kernel ...$(TCOLOR_RESET)
+	@ld -o $@ -Ttext 0x1000 $^ --oformat binary
+	@echo $(TCOLOR_GREEN)Kernel linked successfully$(TCOLOR_RESET)
+
+# Generic rule for compiling C code to an object file
+# For simplicity, we C files depend on all header files .
+%.o:%.c
+	@gcc -ffreestanding -c $< -o $@
+
+# Assemble the kernel_entry
+%.o:%.asm
+	@nasm $< -f elf64 -o $@
+
+%.bin:%.asm
+	@nasm $< -f bin -o $@
 
 clean:
-	rm -f $(NAME)
-
-re: clean all
-
-.PHONY: bootloader kernel group clean re
+	@echo $(TCOLOR_PURPLE)Cleaning ...$(TCOLOR_RESET)
+	@rm -rf *.bin *.dis *.o $(NAME)
+	@rm -rf kernel/*.o boot/*.bin drivers/*.o
