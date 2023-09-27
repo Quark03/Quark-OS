@@ -10,5 +10,4 @@
 void _start()
 {
     clear_screen();
-    // println("Hello World!");
 }
