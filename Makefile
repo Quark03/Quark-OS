@@ -64,3 +64,5 @@ clean:
 	@echo $(TCOLOR_PURPLE)Cleaning ...$(TCOLOR_RESET)
 	@rm -rf *.bin *.dis *.o $(NAME)
 	@rm -rf kernel/*.o boot/*.bin drivers/*.o
+
+re: clean all
