@@ -42,6 +42,8 @@ kernel.bin: kernel/kernel_entry.o $(OBJ)
 	@ld -o $@ -Ttext 0x1000 $^ --oformat binary
 	@echo $(TCOLOR_GREEN)Kernel linked successfully$(TCOLOR_RESET)
 
+# Virtualize the OS image using qemu
+# - Does not require the OS image to be built
 virtualize:
 	@echo $(TCOLOR_PURPLE)Starting OS emulation ...$(TCOLOR_RESET)
 	@qemu-system-x86_64 -drive format=raw,file=$(NAME)
