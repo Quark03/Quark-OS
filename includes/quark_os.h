@@ -1,6 +1,9 @@
 #ifndef QUARK_OS_H
 #define QUARK_OS_H
 
+#include <types.h>
+#include <screen.h>
+
 //
 // Low Level Utils
 //
@@ -13,12 +16,5 @@ void port_word_out(unsigned short port, unsigned short data);
 // Utils
 //
 void memcpy(void *src, void *dest, int nobytes);
-
-//
-// PRINT UTILS
-//
-void print(char *message);
-void println(char *message);
-void clear_screen();
 
 #endif // QUARK_OS_H

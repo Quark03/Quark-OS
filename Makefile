@@ -61,8 +61,9 @@ virtualize:
 	@nasm $< -f bin -o $@
 
 clean:
-	@echo $(TCOLOR_PURPLE)Cleaning ...$(TCOLOR_RESET)
+	@echo $(TCOLOR_PURPLE)Cleaning objects...$(TCOLOR_RESET)
 	@rm -rf *.bin *.dis *.o $(NAME)
 	@rm -rf kernel/*.o boot/*.bin drivers/*.o
+	@echo $(TCOLOR_GREEN)Objects cleanned successfully$(TCOLOR_RESET)
 
 re: clean all

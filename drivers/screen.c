@@ -3,110 +3,73 @@
 //
 
 #include <quark_os.h>
-#include "screen.h"
 
-int get_screen_offset(int col, int row)
+/**
+ * Get the cursor offset
+ */
+int get_cursor()
 {
-    return ((row * MAX_COLS + col) * 2);
+    port_byte_out(REG_SCREEN_CTRL, 14);
+    int offset = port_byte_in(REG_SCREEN_DATA) << 8;
+    port_byte_out(REG_SCREEN_CTRL, 15);
+    offset += port_byte_in(REG_SCREEN_DATA);
+    return (offset * 2);
 }
 
-// int get_cursor()
-// {
-//     port_byte_out(REG_SCREEN_CTRL, 14);
-//     int offset = port_byte_in(REG_SCREEN_DATA) << 8;
-//     port_byte_out(REG_SCREEN_CTRL, 15);
-//     offset += port_byte_in(REG_SCREEN_DATA);
-//     return (offset * 2);
-// }
-
+/**
+ * Set the cursor offset
+ */
 int set_cursor(int offset)
 {
-    // offset /= 2;
     port_byte_out(REG_SCREEN_CTRL, 14);
     port_byte_out(REG_SCREEN_DATA, (unsigned char)(offset >> 8));
     port_byte_out(REG_SCREEN_CTRL, 15);
     port_byte_out(REG_SCREEN_DATA, (unsigned char)(offset & 0xff));
 }
 
-// int handle_scrolling(int cursor_offset)
-// {
-//     if (cursor_offset < MAX_ROWS * MAX_COLS * 2)
-//     {
-//         return cursor_offset;
-//     }
-
-//     // Copy all rows back one
-//     for (int i = 0; i < MAX_ROWS; i++)
-//     {
-//         memcpy((void *)get_screen_offset(0, i) + VIDEO_ADDRESS,
-//                (void *)get_screen_offset(0, i - 1) + VIDEO_ADDRESS, MAX_COLS * 2);
-//     }
-
-//     // Blank last line
-//     char *last_line = get_screen_offset(0, MAX_ROWS - 1) + VIDEO_ADDRESS;
-//     for (int i = 0; i < MAX_COLS * 2; i++)
-//     {
-//         last_line[i] = 0;
-//     }
-
-//     cursor_offset -= 2 * MAX_COLS;
-//     return (cursor_offset);
-// }
-
-void print_char(char character, int col, int row, char attr_byte)
+void write_char_at(unsigned char c, uint16_t attrib, int x, int y)
 {
-    unsigned char *vidmem = (unsigned char *)VIDEO_ADDRESS;
-    if (!attr_byte)
-    {
-        attr_byte = WHITE_ON_BLACK;
-    }
-    if (col < 0 || col > MAX_COLS)
-        return;
-    if (row < 0 || row > MAX_ROWS)
-        return;
-
-    int offset = get_screen_offset(col, row);
-    vidmem[offset] = character;
-
-    set_cursor(offset + 1);
+    volatile uint16_t *where;
+    where = (volatile uint16_t *)VIDEO_ADDRESS + (y * MAX_COLS + x);
+    *where = c | (attrib << 8);
+    // set_cursor((y * MAX_COLS + x) + 1);
 }
 
-// void print_at(char *str, int col, int row)
-// {
-//     if (col >= 0 && row >= 0)
-//     {
-//         set_cursor(get_screen_offset(col, row));
-//     }
-
-//     for (int i = 0; str[i] != '\0'; i++)
-//     {
-//         print_char(str[i], col, row, WHITE_ON_BLACK);
-//     }
-// }
-
-void print(char *message)
+void write_char(unsigned char c, uint16_t attrib)
 {
-    int col = 0;
-    int row = 0;
-    while (*message != 0)
+    int offset = get_cursor();
+    int row = offset / MAX_COLS;
+    int col = offset % MAX_COLS;
+
+    if (c == '\n')
     {
-        print_char(*message++, col++, row, CYAN_ON_BLACK);
+        row++;
+        col = 0;
+    }
+    else
+    {
+        write_char_at(c, attrib, col, row);
+        col++;
     }
 }
 
-// void println(char *message)
-// {
-//     print_at(message, -1, -1);
-//     print_at("\n", -1, -1);
-// }
+void write_string(char *str, uint16_t attrib)
+{
+    int i = 0;
+    while (str[i] != 0)
+    {
+        write_char(str[i], attrib);
+        i++;
+    }
+}
 
 void clear_screen()
 {
-    for (int row = 0; row < MAX_ROWS; row++)
+    for (int row = 0; row <= MAX_ROWS; row++)
     {
-        for (int col = 0; col < MAX_COLS; col++)
+        for (int col = 0; col <= MAX_COLS; col++)
         {
-            print_char(' ', col, row, WHITE_ON_BLACK);
+            write_char_at(' ', WHITE_ON_BLACK, col, row);
         }
     }
     set_cursor(0);

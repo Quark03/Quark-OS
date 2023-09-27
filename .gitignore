@@ -9,5 +9,5 @@ quark-os
 #
 # Ignore trash files
 #
-
+.vscode
 .DS_Store

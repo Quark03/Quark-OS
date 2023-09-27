@@ -5,10 +5,6 @@
 #define MAX_ROWS 25
 #define MAX_COLS 80
 
-// Sepecial characters
-#define BLANK_CHAR ' '
-#define NEW_LINE '\n'
-
 // Color Scheme
 #define BLACK_ON_BLACK 0x00
 #define BLUE_ON_BLACK 0x01
@@ -47,5 +43,10 @@
 // Screen device I/O ports
 #define REG_SCREEN_CTRL 0x3D4
 #define REG_SCREEN_DATA 0x3D5
+
+// Functions
+void write_string(char *str, uint16_t attrib);
+void write_char(unsigned char c, uint16_t attrib);
+void clear_screen();
 
 #endif // DRIVER_SCREEN_H
