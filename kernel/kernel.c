@@ -1,15 +1,14 @@
 //
-// Kernel.c
+// kernel.c
 //
 
-#include "kernel.h"
+#include <quark_os.h>
 
 /**
  * Kernel starting point
  */
 void _start()
 {
-    char *video_memory = VIDEO_ADDRESS;
-
-    *video_memory = 'X';
+    clear_screen();
+    // println("Hello World!");
 }

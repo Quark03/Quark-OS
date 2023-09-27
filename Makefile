@@ -14,6 +14,7 @@ TCOLOR_WHITE="\033[37m"
 # match the patterns
 C_SOURCES = $(wildcard kernel/*.c drivers/*.c)
 HEADERS = $(wildcard kernel/*.h drivers/*.h)
+INCLUDES = -I./includes
 
 # Create a list of object files to build, simple by replacing
 # the ’.c ’ extension of filenames in C_SOURCES with ’.o’
@@ -50,7 +51,7 @@ virtualize:
 
 # Generic rule for compiling C code to an object file
 %.o:%.c
-	@gcc -ffreestanding -c $< -o $@
+	@gcc -ffreestanding $(INCLUDES) -c $< -o $@
 
 # Assemble the kernel_entry
 %.o:%.asm
