@@ -49,7 +49,6 @@ virtualize:
 	@qemu-system-x86_64 -drive format=raw,file=$(NAME)
 
 # Generic rule for compiling C code to an object file
-# For simplicity, we C files depend on all header files .
 %.o:%.c
 	@gcc -ffreestanding -c $< -o $@
 
