@@ -9,11 +9,13 @@
  */
 int get_cursor()
 {
-    port_byte_out(REG_SCREEN_CTRL, 14);
-    int offset = port_byte_in(REG_SCREEN_DATA) << 8;
-    port_byte_out(REG_SCREEN_CTRL, 15);
-    offset += port_byte_in(REG_SCREEN_DATA);
-    return (offset * 2);
+    unsigned short offset = 0;
+
+    port_byte_out(REG_SCREEN_CTRL, 0x0E);
+    offset |= (unsigned short)port_byte_in(REG_SCREEN_DATA) << 8;
+    port_byte_out(REG_SCREEN_CTRL, 0x0F);
+    offset |= port_byte_in(REG_SCREEN_DATA);
+    return (offset);
 }
 
 /**
@@ -27,50 +29,41 @@ int set_cursor(int offset)
     port_byte_out(REG_SCREEN_DATA, (unsigned char)(offset & 0xff));
 }
 
-void write_char_at(unsigned char c, uint16_t attrib, int x, int y)
+void write_char_at(char c, char attrib, int offset)
 {
-    volatile uint16_t *where;
-    where = (volatile uint16_t *)VIDEO_ADDRESS + (y * MAX_COLS + x);
-    *where = c | (attrib << 8);
-    // set_cursor((y * MAX_COLS + x) + 1);
+    uint16_t content = (c | (attrib << 8));
+
+    uint16_t *where = ((uint16_t *)0xB8000 + (offset + MAX_COLS - 77));
+    *where = content;
+
+    set_cursor(offset + 1);
 }
 
-void write_char(unsigned char c, uint16_t attrib)
+void write_char(unsigned char c, char attrib)
 {
     int offset = get_cursor();
-    int row = offset / MAX_COLS;
-    int col = offset % MAX_COLS;
 
-    if (c == '\n')
-    {
-        row++;
-        col = 0;
-    }
-    else
-    {
-        write_char_at(c, attrib, col, row);
-        col++;
-    }
+    write_char_at(c, attrib, offset);
 }
 
-void write_string(char *str, uint16_t attrib)
+void write_string(char *str, char attrib)
 {
     int i = 0;
-    while (str[i] != 0)
+    while (str[i] != '\0')
     {
-        write_char(str[i], attrib);
+        write_char((unsigned char)str[i], attrib);
         i++;
     }
 }
 
 void clear_screen()
 {
-    for (int row = 0; row <= MAX_ROWS; row++)
+    uint16_t content = (' ' | (WHITE_ON_BLACK << 8));
+
+    for (int offset = 0; offset <= (MAX_ROWS * MAX_COLS); offset++)
     {
-        for (int col = 0; col <= MAX_COLS; col++)
-        {
-            write_char_at(' ', WHITE_ON_BLACK, col, row);
-        }
+        uint16_t *where = (uint16_t *)0xB8000 + (offset);
+        *where = content;
     }
     set_cursor(0);
 }

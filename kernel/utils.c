@@ -14,3 +14,13 @@ void memcpy(void *src, void *dest, int nobytes)
         *d++ = *s++;
     }
 }
+
+void memset(void *dest, char val, int nobytes)
+{
+    char *d = (char *)dest;
+
+    while (nobytes--)
+    {
+        *d++ = val;
+    }
+}

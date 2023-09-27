@@ -1,8 +1,8 @@
 #ifndef DRIVER_SCREEN_H
 #define DRIVER_SCREEN_H
 
-#define VIDEO_ADDRESS 0xb8000
-#define MAX_ROWS 25
+#define VIDEO_ADDRESS 0xB8000
+#define MAX_ROWS 26
 #define MAX_COLS 80
 
 // Color Scheme
@@ -45,8 +45,11 @@
 #define REG_SCREEN_DATA 0x3D5
 
 // Functions
-void write_string(char *str, uint16_t attrib);
-void write_char(unsigned char c, uint16_t attrib);
+int get_cursor();
+int set_cursor(int offset);
+void write_char_at(char c, char attrib, int offset);
+void write_char(unsigned char c, char attrib);
+void write_string(char *str, char attrib);
 void clear_screen();
 
 #endif // DRIVER_SCREEN_H
